@@ -1,0 +1,11 @@
+# Root .gitignore
+node_modules/
+.env
+.env.local
+.env.development
+.env.production
+dist/
+.DS_Store
+*.log
+.vercel
+.render
