@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── User ────────────────────────────────────────────────────
+model User {
+  id       String  @id @default(cuid())
+  email    String  @unique
+  username String
+  password String? // nullable — OAuth users have no password
+  avatar   String?
+  googleId String? @unique // for Google OAuth
+
+  watchlist Watchlist[]
+  favorites Favorite[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Watchlist ────────────────────────────────────────────────
+model Watchlist {
+  id         String          @id @default(cuid())
+  userId     String
+  animeId    Int // Jikan mal_id
+  animeTitle String
+  animeCover String
+  status     WatchlistStatus @default(PLANNING)
+  progress   Int             @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, animeId]) // one entry per anime per user
+}
+
+// ─── Favorite ────────────────────────────────────────────────
+model Favorite {
+  id         String      @id @default(cuid())
+  userId     String
+  animeId    Int
+  animeTitle String
+  animeCover String
+  type       ContentType @default(ANIME)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, animeId, type]) // can favorite same ID as both anime+manga
+}
+
+// ─── Enums ───────────────────────────────────────────────────
+enum WatchlistStatus {
+  WATCHING
+  PLANNING
+  COMPLETED
+  ON_HOLD
+  DROPPED
+}
+
+enum ContentType {
+  ANIME
+  MANGA
+}

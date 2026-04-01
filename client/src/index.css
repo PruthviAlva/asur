@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+/* Tailwind v4 theme — custom CSS variables */
+@theme {
+  --color-brand: #f97316; /* orange-500 — Asur primary */
+  --color-brand-dark: #ea580c; /* orange-600 — hover states */
+  --color-surface: #0f0f0f; /* near-black background */
+  --color-surface-2: #1a1a1a; /* card background */
+  --color-surface-3: #242424; /* elevated cards */
+  --color-border: #2a2a2a; /* subtle borders */
+  --color-text: #e5e7eb; /* gray-200 — body text */
+  --color-muted: #6b7280; /* gray-500 — muted text */
+
+  --font-family-sans: "Inter", system-ui, sans-serif;
+  --radius-card: 0.75rem;
+}
+
+/* Global base styles */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-family-sans);
+  margin: 0;
+}
+
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-surface-2);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-muted);
+}
