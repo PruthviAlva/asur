@@ -15,6 +15,17 @@
   --radius-card: 0.75rem;
 }
 
+:root {
+  --color-surface: #0f0f0f;
+  --color-surface-2: #1a1a1a;
+  --color-surface-3: #242424;
+  --color-border: #2a2a2a;
+  --color-text: #e5e7eb;
+  --color-muted: #6b7280;
+  --color-brand: #f97316;
+  --color-brand-dark: #ea580c;
+}
+
 /* Global base styles */
 * {
   box-sizing: border-box;
@@ -40,4 +51,13 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-muted);
+}
+
+/* Hide scrollbar but keep scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
