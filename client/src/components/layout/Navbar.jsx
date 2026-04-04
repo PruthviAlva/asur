@@ -2,11 +2,16 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, Menu, X, Shuffle, LogIn } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+//Auth
+import { useAuth } from "../../context/AuthContext";
+import { LogOut, User } from "lucide-react";
 
 export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
+  //Auth
+  const { user, logout } = useAuth();
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -88,14 +93,33 @@ export default function Navbar() {
             <Shuffle className="w-4 h-4" />
           </button>
 
-          {/* Login button — will be replaced with user avatar in Phase 6 */}
-          <Link
-            to="/login"
-            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-1.5 rounded-lg transition-colors"
-          >
-            <LogIn className="w-4 h-4" />
-            <span className="hidden sm:inline">Login</span>
-          </Link>
+          {/* Login button */}
+          {user ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-300 hidden sm:block">
+                Hi,{" "}
+                <span className="text-white font-semibold">
+                  {user.username}
+                </span>
+              </span>
+              <button
+                onClick={logout}
+                title="Logout"
+                className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">Logout</span>
+              </button>
+            </div>
+          ) : (
+            <Link
+              to="/login"
+              className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-1.5 rounded-lg transition-colors"
+            >
+              <LogIn className="w-4 h-4" />
+              <span className="hidden sm:inline">Login</span>
+            </Link>
+          )}
 
           {/* Mobile menu toggle */}
           <button

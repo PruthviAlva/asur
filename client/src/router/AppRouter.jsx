@@ -12,6 +12,9 @@ const AnimeDetails = lazy(() => import("../pages/AnimeDetails"));
 const MangaDetails = lazy(() => import("../pages/MangaDetails"));
 const SearchPage = lazy(() => import("../pages/SearchPage"));
 const NotFound = lazy(() => import("../pages/NotFound"));
+//auth
+const Login = lazy(() => import("../pages/Login"));
+const Register = lazy(() => import("../pages/Register"));
 
 export default function AppRouter() {
   return (
@@ -32,6 +35,9 @@ export default function AppRouter() {
             <Route path="/manga/:id" element={<MangaDetails />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="*" element={<NotFound />} />
+            // Auth routes
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
           </Routes>
         </Suspense>
       </main>
