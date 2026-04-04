@@ -3,6 +3,7 @@ import { Suspense, lazy } from "react";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import LoadingSpinner from "../components/common/LoadingSpinner";
+import ErrorBoundary from "../components/common/ErrorBoundary";
 
 // Lazy load pages — only downloaded when visited (faster initial load)
 const HomePage = lazy(() => import("../pages/HomePage"));
@@ -20,32 +21,34 @@ const WatchlistPage = lazy(() => import("../pages/WatchlistPage"));
 
 export default function AppRouter() {
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{ backgroundColor: "var(--color-surface)" }}
-    >
-      <Navbar />
+    <ErrorBoundary>
+      <div
+        className="min-h-screen flex flex-col"
+        style={{ backgroundColor: "var(--color-surface)" }}
+      >
+        <Navbar />
 
-      {/* Suspense shows spinner while lazy page loads */}
-      <main className="flex-1">
-        <Suspense fallback={<LoadingSpinner fullScreen />}>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/anime" element={<AnimePage />} />
-            <Route path="/manga" element={<MangaPage />} />
-            <Route path="/anime/:id" element={<AnimeDetails />} />
-            <Route path="/manga/:id" element={<MangaDetails />} />
-            <Route path="/search" element={<SearchPage />} />
-            <Route path="*" element={<NotFound />} />
-            // Auth routes
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/watchlist" element={<WatchlistPage />} />
-          </Routes>
-        </Suspense>
-      </main>
+        {/* Suspense shows spinner while lazy page loads */}
+        <main className="flex-1">
+          <Suspense fallback={<LoadingSpinner fullScreen />}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/anime" element={<AnimePage />} />
+              <Route path="/manga" element={<MangaPage />} />
+              <Route path="/anime/:id" element={<AnimeDetails />} />
+              <Route path="/manga/:id" element={<MangaDetails />} />
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="*" element={<NotFound />} />
+              // Auth routes
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/watchlist" element={<WatchlistPage />} />
+            </Routes>
+          </Suspense>
+        </main>
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </ErrorBoundary>
   );
 }
