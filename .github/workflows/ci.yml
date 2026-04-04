@@ -31,7 +31,7 @@ jobs:
         working-directory: client
         run: npm run build
         env:
-          VITE_API_URL: https://placeholder.onrender.com/api
+          VITE_API_URL: https://asur-1n3w.onrender.com/api
           VITE_GOOGLE_CLIENT_ID: placeholder
 
   # ── Server Check ────────────────────────────────
@@ -57,4 +57,4 @@ jobs:
         working-directory: server
         run: npx prisma generate
         env:
-          DATABASE_URL: postgresql://placeholder:placeholder@localhost/placeholder
+          DATABASE_URL: postgresql://asurTv:npg_gY9MwryeUq2d@ep-shy-bonus-anrzdia9-pooler.c-6.us-east-1.aws.neon.tech/asurTv?sslmode=require&channel_binding=require
