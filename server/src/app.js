@@ -10,6 +10,7 @@ const { connectRedis } = require('./config/redis')
 const { notFound, errorHandler } = require('./middlewares/errorHandler')
 const healthRoutes = require('./routes/healthRoutes')
 const authRoutes = require('./routes/authRoutes')
+const userRoutes = require('./routes/userRoutes')
 
 const app = express()
 
@@ -47,8 +48,7 @@ app.use(express.urlencoded({ extended: true }))
 // ─── Routes ───────────────────────────────────────────────────
 app.use('/api/health', healthRoutes)
 app.use('/api/auth', authRoutes)
-
-// app.use('/api/users', userRoutes)
+app.use('/api/users', userRoutes)
 
 // ─── Error Handling ───────────────────────────────────────────
 app.use(notFound)

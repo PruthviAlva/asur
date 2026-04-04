@@ -16,6 +16,8 @@ import LoadingSpinner from "../components/common/LoadingSpinner";
 import StreamingPlatforms from "../components/anime/StreamingPlatforms";
 import YoutubePlayer from "../components/anime/YoutubePlayer";
 import RelatedAnime from "../components/anime/RelatedAnime";
+import WatchlistButton from "../components/anime/WatchlistButton";
+import FavoriteButton from "../components/anime/FavoriteButton";
 
 export default function AnimeDetails() {
   const { id } = useParams();
@@ -174,9 +176,8 @@ export default function AnimeDetails() {
                 >
                   <Play className="w-4 h-4 fill-white" /> Watch Now
                 </button>
-                <button className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold px-5 py-2.5 rounded-lg transition-colors">
-                  <Heart className="w-4 h-4" /> Favorite
-                </button>
+                <WatchlistButton anime={anime} />
+                <FavoriteButton anime={anime} type="ANIME" />
               </div>
             </div>
           </div>

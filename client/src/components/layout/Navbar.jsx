@@ -4,7 +4,7 @@ import { Search, Menu, X, Shuffle, LogIn } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 //Auth
 import { useAuth } from "../../context/AuthContext";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, List } from "lucide-react";
 
 export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -102,6 +102,15 @@ export default function Navbar() {
                   {user.username}
                 </span>
               </span>
+              {user && (
+                <Link
+                  to="/watchlist"
+                  className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                  title="My Watchlist"
+                >
+                  <List className="w-4 h-4" />
+                </Link>
+              )}
               <button
                 onClick={logout}
                 title="Logout"
