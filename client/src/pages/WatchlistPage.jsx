@@ -1,6 +1,10 @@
 import { Link } from "react-router-dom";
-import { Trash2, ExternalLink } from "lucide-react";
-import { useWatchlist, useWatchlistMutations } from "../hooks/useWatchlist";
+import { Trash2, Minus, Plus } from "lucide-react";
+import {
+  useWatchlist,
+  useWatchlistMutations,
+  useContinueWatching,
+} from "../hooks/useWatchlist";
 import { useAuth } from "../context/AuthContext";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 
@@ -24,6 +28,7 @@ export default function WatchlistPage() {
   const { user } = useAuth();
   const { data, isLoading } = useWatchlist();
   const { updateStatus, remove } = useWatchlistMutations();
+  const { updateProgress } = useContinueWatching();
 
   if (!user) {
     return (
@@ -31,7 +36,7 @@ export default function WatchlistPage() {
         <p className="text-gray-400">Sign in to view your watchlist.</p>
         <Link
           to="/login"
-          className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg"
+          className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg transition-colors"
         >
           Sign In
         </Link>
@@ -43,17 +48,45 @@ export default function WatchlistPage() {
 
   const items = data?.data || [];
 
+  // Group items by status for summary counts
+  const counts = STATUS_OPTIONS.reduce((acc, s) => {
+    acc[s.value] = items.filter((i) => i.status === s.value).length;
+    return acc;
+  }, {});
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* ── Page Header ───────────────────────────── */}
       <div className="mb-6">
         <h1 className="text-2xl font-black text-white mb-1">My Watchlist</h1>
         <p className="text-gray-500 text-sm">{items.length} anime saved</p>
       </div>
 
+      {/* ── Status Summary Pills ──────────────────── */}
+      {items.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-6">
+          {STATUS_OPTIONS.map(
+            (s) =>
+              counts[s.value] > 0 && (
+                <span
+                  key={s.value}
+                  className={`text-xs px-3 py-1 rounded-full border font-medium ${statusColors[s.value]}`}
+                >
+                  {s.label}: {counts[s.value]}
+                </span>
+              ),
+          )}
+        </div>
+      )}
+
+      {/* ── Empty State ───────────────────────────── */}
       {items.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 gap-4 text-gray-600">
           <p className="text-lg">Your watchlist is empty.</p>
-          <Link to="/anime" className="text-orange-500 hover:text-orange-400">
+          <Link
+            to="/anime"
+            className="text-orange-500 hover:text-orange-400 transition-colors"
+          >
             Browse Anime →
           </Link>
         </div>
@@ -67,6 +100,9 @@ export default function WatchlistPage() {
                 updateStatus.mutate({ animeId: item.animeId, status })
               }
               onRemove={() => remove.mutate(item.animeId)}
+              onProgressChange={(progress) =>
+                updateProgress.mutate({ animeId: item.animeId, progress })
+              }
             />
           ))}
         </div>
@@ -75,18 +111,31 @@ export default function WatchlistPage() {
   );
 }
 
-function WatchlistCard({ item, onStatusChange, onRemove }) {
+// ── Watchlist Card ────────────────────────────────
+function WatchlistCard({ item, onStatusChange, onRemove, onProgressChange }) {
   return (
     <div className="group relative rounded-xl overflow-hidden border border-white/5 bg-white/5 hover:border-white/10 transition-all">
-      {/* Cover */}
+      {/* Cover image */}
       <Link to={`/anime/${item.animeId}`}>
-        <div className="aspect-[2/3] overflow-hidden">
+        <div className="aspect-[2/3] overflow-hidden relative">
           <img
             src={item.animeCover}
             alt={item.animeTitle}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             loading="lazy"
           />
+
+          {/* Progress bar at bottom of image — only for WATCHING */}
+          {item.status === "WATCHING" && (
+            <div className="absolute bottom-0 inset-x-0 h-1 bg-white/20">
+              <div
+                className="h-full bg-blue-500 transition-all duration-300"
+                style={{
+                  width: `${Math.min(100, ((item.progress || 0) / 12) * 100)}%`,
+                }}
+              />
+            </div>
+          )}
         </div>
       </Link>
 
@@ -99,15 +148,16 @@ function WatchlistCard({ item, onStatusChange, onRemove }) {
         <Trash2 className="w-3.5 h-3.5" />
       </button>
 
-      {/* Info + status selector */}
-      <div className="p-2">
+      {/* Info section */}
+      <div className="p-2 space-y-1.5">
+        {/* Title */}
         <Link to={`/anime/${item.animeId}`}>
-          <p className="text-xs font-medium text-gray-300 hover:text-white line-clamp-2 leading-tight mb-2">
+          <p className="text-xs font-medium text-gray-300 hover:text-white transition-colors line-clamp-2 leading-tight">
             {item.animeTitle}
           </p>
         </Link>
 
-        {/* Inline status selector */}
+        {/* Status selector */}
         <select
           value={item.status}
           onChange={(e) => onStatusChange(e.target.value)}
@@ -124,6 +174,35 @@ function WatchlistCard({ item, onStatusChange, onRemove }) {
             </option>
           ))}
         </select>
+
+        {/* Episode progress — only shown when WATCHING */}
+        {item.status === "WATCHING" && (
+          <div className="flex items-center gap-1">
+            {/* Decrease episode */}
+            <button
+              onClick={() =>
+                onProgressChange(Math.max(0, (item.progress || 0) - 1))
+              }
+              disabled={!item.progress || item.progress <= 0}
+              className="p-1 rounded bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white disabled:opacity-30 transition-colors"
+            >
+              <Minus className="w-3 h-3" />
+            </button>
+
+            {/* Current episode */}
+            <span className="text-xs text-gray-400 flex-1 text-center">
+              Ep {item.progress || 0}
+            </span>
+
+            {/* Increase episode */}
+            <button
+              onClick={() => onProgressChange((item.progress || 0) + 1)}
+              className="p-1 rounded bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white transition-colors"
+            >
+              <Plus className="w-3 h-3" />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

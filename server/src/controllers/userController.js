@@ -258,8 +258,45 @@ const updatePassword = async (req, res) => {
     }
 }
 
+// GET /api/users/continue-watching
+const getContinueWatching = async (req, res) => {
+    try {
+        const items = await prisma.watchlist.findMany({
+            where: {
+                userId: req.user.id,
+                status: 'WATCHING', // only currently watching
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 12, // max 12 in the row
+        })
+
+        res.json({ success: true, data: items })
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message })
+    }
+}
+
+// PATCH /api/users/progress/:animeId — update episode progress
+const updateProgress = async (req, res) => {
+    try {
+        const { progress } = req.body
+        const animeId = Number(req.params.animeId)
+
+        const entry = await prisma.watchlist.update({
+            where: { userId_animeId: { userId: req.user.id, animeId } },
+            data: { progress: Number(progress) },
+        })
+
+        res.json({ success: true, data: entry })
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message })
+    }
+}
+
+// Add to module.exports:
 module.exports = {
     getWatchlist, addToWatchlist, updateWatchlistStatus,
     removeFromWatchlist, getFavorites, toggleFavorite,
-    getProfile, updateProfile, updatePassword, // ← add these
+    getProfile, updateProfile, updatePassword,
+    getContinueWatching, updateProgress, // ← add
 }

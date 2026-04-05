@@ -1,6 +1,7 @@
 import { Flame, Clock, TrendingUp, Calendar } from "lucide-react";
 import HeroBanner from "../components/anime/HeroBanner";
 import AnimeRow from "../components/anime/AnimeRow";
+import ContinueWatchingRow from "../components/anime/ContinueWatchingRow";
 import {
   useSeasonNow,
   useTopAnime,
@@ -20,6 +21,25 @@ export default function HomePage() {
     <div className="max-w-7xl mx-auto px-4 py-6">
       {/* Hero Banner — rotates through currently airing anime */}
       <HeroBanner animeList={seasonData?.data?.slice(0, 5) || []} />
+
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <HeroBanner animeList={seasonData?.data?.slice(0, 5) || []} />
+
+        {/* Continue Watching — only shows for logged-in users with WATCHING items */}
+        <ContinueWatchingRow />
+
+        {/* Top 10 Today */}
+        <AnimeRow
+          title="Top 10 Today"
+          viewAllLink="/anime"
+          icon={TrendingUp}
+          items={topData?.data || []}
+          isLoading={loadingTop}
+          showRank={true}
+        />
+
+        {/* rest of rows... */}
+      </div>
 
       {/* Top 10 Today — with large rank numbers */}
       <AnimeRow

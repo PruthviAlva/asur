@@ -5,6 +5,7 @@ const {
     getWatchlist, addToWatchlist, updateWatchlistStatus,
     removeFromWatchlist, getFavorites, toggleFavorite,
     getProfile, updateProfile, updatePassword,
+    getContinueWatching, updateProgress,
 } = require('../controllers/userController')
 
 // All routes require authentication
@@ -21,5 +22,8 @@ router.post('/favorites/toggle', toggleFavorite)
 router.get('/profile', getProfile)
 router.patch('/profile', updateProfile)
 router.patch('/password', updatePassword)
+
+router.get('/continue-watching', getContinueWatching)
+router.patch('/progress/:animeId', updateProgress)
 
 module.exports = router

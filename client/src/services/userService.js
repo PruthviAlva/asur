@@ -14,6 +14,11 @@ const userService = {
     getProfile: () => api.get('/users/profile').then(r => r.data),
     updateProfile: (data) => api.patch('/users/profile', data).then(r => r.data),
     updatePassword: (data) => api.patch('/users/password', data).then(r => r.data),
+    getContinueWatching: () =>
+        api.get('/users/continue-watching').then(r => r.data),
+
+    updateProgress: (animeId, progress) =>
+        api.patch(`/users/progress/${animeId}`, { progress }).then(r => r.data),
 }
 
 export default userService
