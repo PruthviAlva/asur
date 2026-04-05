@@ -1,10 +1,16 @@
 import { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useLocation,
+  useSearchParams,
+} from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { LogIn, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import GoogleButton from "../components/common/GoogleButton";
 
 const schema = z.object({
   email: z.string().email("Invalid email address"),
@@ -12,6 +18,9 @@ const schema = z.object({
 });
 
 export default function Login() {
+  const [searchParams] = useSearchParams();
+  const googleError = searchParams.get("error") === "google_failed";
+
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -58,6 +67,12 @@ export default function Login() {
         {serverError && (
           <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-lg mb-4">
             {serverError}
+          </div>
+        )}
+
+        {googleError && (
+          <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-lg mb-4">
+            Google sign-in failed. Please try again or use email/password.
           </div>
         )}
 
@@ -134,6 +149,22 @@ export default function Login() {
             )}
           </button>
         </form>
+
+        <div className="relative my-5">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-white/10" />
+          </div>
+          <div className="relative flex justify-center">
+            <span
+              className="px-3 text-xs text-gray-500"
+              style={{ backgroundColor: "var(--color-surface-2)" }}
+            >
+              or continue with
+            </span>
+          </div>
+        </div>
+
+        <GoogleButton label="Sign in with Google" />
 
         <p className="text-center text-sm text-gray-500 mt-6">
           Don't have an account?{" "}

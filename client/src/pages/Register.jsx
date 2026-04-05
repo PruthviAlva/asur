@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { UserPlus, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import GoogleButton from "../components/common/GoogleButton";
 
 const schema = z
   .object({
@@ -171,6 +172,22 @@ export default function Register() {
             )}
           </button>
         </form>
+
+        <div className="relative my-5">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-white/10" />
+          </div>
+          <div className="relative flex justify-center">
+            <span
+              className="px-3 text-xs text-gray-500"
+              style={{ backgroundColor: "var(--color-surface-2)" }}
+            >
+              or continue with
+            </span>
+          </div>
+        </div>
+
+        <GoogleButton label="Sign up with Google" />
 
         <p className="text-center text-sm text-gray-500 mt-6">
           Already have an account?{" "}
