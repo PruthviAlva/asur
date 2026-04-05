@@ -13,6 +13,7 @@ import {
 import { useMangaDetails } from "../hooks/useAnime";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import StreamingPlatforms from "../components/anime/StreamingPlatforms";
+import ChapterList from "../components/anime/ChapterList";
 
 export default function MangaDetails() {
   const { id } = useParams();
@@ -161,27 +162,13 @@ export default function MangaDetails() {
         {/* Reading Platforms */}
         <StreamingPlatforms title={title} type="manga" />
 
-        {/* Reader placeholder — Phase 5 */}
+        {/* Reader placeholder */}
         <section ref={readerRef}>
           <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
             <div className="w-1 h-5 bg-orange-500 rounded-full" />
             Read Online
           </h2>
-          <div
-            className="rounded-xl p-8 flex flex-col items-center gap-3 text-center border border-white/5"
-            style={{ backgroundColor: "var(--color-surface-2)" }}
-          >
-            <BookOpen className="w-10 h-10 text-gray-600" />
-            <p className="text-gray-400">Manga reader coming in Phase 5.</p>
-            <a
-              href={`https://mangadex.org/search?q=${encodeURIComponent(title)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-orange-500 hover:text-orange-400 text-sm"
-            >
-              Read on MangaDex →
-            </a>
-          </div>
+          <ChapterList mangaTitle={title} malId={id} />
         </section>
       </div>
     </div>
