@@ -62,3 +62,24 @@ export function useFavorites() {
 
     return { favorites: data?.data || [], toggle, isFavorited }
 }
+
+export function useContinueWatching() {
+    const { user } = useAuth()
+    const queryClient = useQueryClient()
+
+    const query = useQuery({
+        queryKey: ['continue-watching'],
+        queryFn: userService.getContinueWatching,
+        enabled: !!user, // only fetch if logged in
+        staleTime: 1000 * 60 * 2,
+    })
+
+    const updateProgress = useMutation({
+        mutationFn: ({ animeId, progress }) =>
+            userService.updateProgress(animeId, progress),
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: ['continue-watching'] }),
+    })
+
+    return { ...query, updateProgress }
+}
