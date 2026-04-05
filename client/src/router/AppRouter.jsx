@@ -20,6 +20,7 @@ const OAuthCallback = lazy(() => import("../pages/OAuthCallback"));
 
 const WatchlistPage = lazy(() => import("../pages/WatchlistPage"));
 const MangaReader = lazy(() => import("../pages/MangaReader"));
+const ProfilePage = lazy(() => import("../pages/ProfilePage"));
 
 export default function AppRouter() {
   return (
@@ -47,6 +48,7 @@ export default function AppRouter() {
               <Route path="/auth/callback" element={<OAuthCallback />} />
               <Route path="/watchlist" element={<WatchlistPage />} />
               <Route path="/manga/read/:chapterId" element={<MangaReader />} />
+              <Route path="/profile" element={<ProfilePage />} />
             </Routes>
           </Suspense>
         </main>

@@ -10,6 +10,10 @@ const userService = {
     // Favorites
     getFavorites: () => api.get('/users/favorites').then(r => r.data),
     toggleFavorite: (data) => api.post('/users/favorites/toggle', data).then(r => r.data),
+
+    getProfile: () => api.get('/users/profile').then(r => r.data),
+    updateProfile: (data) => api.patch('/users/profile', data).then(r => r.data),
+    updatePassword: (data) => api.patch('/users/password', data).then(r => r.data),
 }
 
 export default userService

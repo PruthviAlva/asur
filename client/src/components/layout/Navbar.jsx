@@ -96,12 +96,15 @@ export default function Navbar() {
           {/* Login button */}
           {user ? (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-300 hidden sm:block">
+              <Link
+                to="/profile"
+                className="text-sm text-gray-300 hidden sm:block hover:text-white transition-colors"
+              >
                 Hi,{" "}
                 <span className="text-white font-semibold">
                   {user.username}
                 </span>
-              </span>
+              </Link>
               {user && (
                 <Link
                   to="/watchlist"
