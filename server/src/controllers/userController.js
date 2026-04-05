@@ -128,7 +128,138 @@ const toggleFavorite = async (req, res) => {
     }
 }
 
+// ── GET /api/users/profile ────────────────────────
+const getProfile = async (req, res) => {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: req.user.id },
+            select: {
+                id: true,
+                email: true,
+                username: true,
+                avatar: true,
+                googleId: true,
+                createdAt: true,
+                // Count related records directly
+                _count: {
+                    select: {
+                        watchlist: true,
+                        favorites: true,
+                    }
+                }
+            }
+        })
+
+        // Get watchlist breakdown by status
+        const watchlistStats = await prisma.watchlist.groupBy({
+            by: ['status'],
+            where: { userId: req.user.id },
+            _count: { status: true },
+        })
+
+        // Shape into { WATCHING: 5, COMPLETED: 12, ... }
+        const statusBreakdown = watchlistStats.reduce((acc, item) => {
+            acc[item.status] = item._count.status
+            return acc
+        }, {})
+
+        res.json({
+            success: true,
+            data: {
+                ...user,
+                watchlistStats: statusBreakdown,
+            }
+        })
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message })
+    }
+}
+
+// ── PATCH /api/users/profile ──────────────────────
+const updateProfile = async (req, res) => {
+    try {
+        const { username, avatar } = req.body
+
+        if (username && username.trim().length < 3) {
+            return res.status(400).json({
+                success: false,
+                message: 'Username must be at least 3 characters'
+            })
+        }
+
+        const updated = await prisma.user.update({
+            where: { id: req.user.id },
+            data: {
+                ...(username && { username: username.trim() }),
+                ...(avatar && { avatar }),
+            },
+            select: {
+                id: true, email: true,
+                username: true, avatar: true
+            }
+        })
+
+        res.json({ success: true, data: updated })
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message })
+    }
+}
+
+// ── PATCH /api/users/password ─────────────────────
+const updatePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body
+        const bcrypt = require('bcryptjs')
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'Both current and new password required'
+            })
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: 'New password must be at least 6 characters'
+            })
+        }
+
+        // Get full user record (need hashed password)
+        const user = await prisma.user.findUnique({
+            where: { id: req.user.id }
+        })
+
+        // Google OAuth users have no password
+        if (!user.password) {
+            return res.status(400).json({
+                success: false,
+                message: 'Google accounts cannot change password here'
+            })
+        }
+
+        const isMatch = await bcrypt.compare(currentPassword, user.password)
+        if (!isMatch) {
+            return res.status(401).json({
+                success: false,
+                message: 'Current password is incorrect'
+            })
+        }
+
+        const hashed = await bcrypt.hash(newPassword, 12)
+        await prisma.user.update({
+            where: { id: req.user.id },
+            data: { password: hashed }
+        })
+
+        res.json({ success: true, message: 'Password updated successfully' })
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message })
+    }
+}
+
 module.exports = {
-    getWatchlist, addToWatchlist, updateWatchlistStatus, removeFromWatchlist,
-    getFavorites, toggleFavorite,
+    getWatchlist, addToWatchlist, updateWatchlistStatus,
+    removeFromWatchlist, getFavorites, toggleFavorite,
+    getProfile, updateProfile, updatePassword, // ← add these
 }

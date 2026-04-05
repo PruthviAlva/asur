@@ -2,8 +2,9 @@ const express = require('express')
 const router = express.Router()
 const { protect } = require('../middlewares/authMiddleware')
 const {
-    getWatchlist, addToWatchlist, updateWatchlistStatus, removeFromWatchlist,
-    getFavorites, toggleFavorite,
+    getWatchlist, addToWatchlist, updateWatchlistStatus,
+    removeFromWatchlist, getFavorites, toggleFavorite,
+    getProfile, updateProfile, updatePassword,
 } = require('../controllers/userController')
 
 // All routes require authentication
@@ -16,5 +17,9 @@ router.delete('/watchlist/:animeId', removeFromWatchlist)
 
 router.get('/favorites', getFavorites)
 router.post('/favorites/toggle', toggleFavorite)
+
+router.get('/profile', getProfile)
+router.patch('/profile', updateProfile)
+router.patch('/password', updatePassword)
 
 module.exports = router
