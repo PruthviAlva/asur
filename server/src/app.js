@@ -11,6 +11,7 @@ const { notFound, errorHandler } = require('./middlewares/errorHandler')
 const healthRoutes = require('./routes/healthRoutes')
 const authRoutes = require('./routes/authRoutes')
 const userRoutes = require('./routes/userRoutes')
+const passport = require('./config/passport')
 
 const app = express()
 
@@ -44,6 +45,9 @@ if (process.env.NODE_ENV === 'development') {
 // ─── Body Parsers ─────────────────────────────────────────────
 app.use(express.json({ limit: '10kb' }))
 app.use(express.urlencoded({ extended: true }))
+
+// Google OAuth
+app.use(passport.initialize())
 
 // ─── Routes ───────────────────────────────────────────────────
 app.use('/api/health', healthRoutes)

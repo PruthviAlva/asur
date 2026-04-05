@@ -16,6 +16,7 @@ const NotFound = lazy(() => import("../pages/NotFound"));
 //auth
 const Login = lazy(() => import("../pages/Login"));
 const Register = lazy(() => import("../pages/Register"));
+const OAuthCallback = lazy(() => import("../pages/OAuthCallback"));
 
 const WatchlistPage = lazy(() => import("../pages/WatchlistPage"));
 
@@ -42,6 +43,7 @@ export default function AppRouter() {
               // Auth routes
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/auth/callback" element={<OAuthCallback />} />
               <Route path="/watchlist" element={<WatchlistPage />} />
             </Routes>
           </Suspense>
