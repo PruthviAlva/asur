@@ -29,6 +29,9 @@ export default function Footer() {
           <Link to="/search" className="hover:text-white transition-colors">
             Search
           </Link>
+          <Link to="/schedule" className="hover:text-white transition-colors">
+            Schedule
+          </Link>
         </div>
       </div>
     </footer>

@@ -25,6 +25,7 @@ export default function Navbar() {
     { label: "Home", href: "/" },
     { label: "Anime", href: "/anime" },
     { label: "Manga", href: "/manga" },
+    { label: "Schedule", href: "/schedule" },
     { label: "Search", href: "/search" },
   ];
 
