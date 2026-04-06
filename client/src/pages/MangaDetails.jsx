@@ -14,6 +14,10 @@ import { useMangaDetails } from "../hooks/useAnime";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import StreamingPlatforms from "../components/anime/StreamingPlatforms";
 import ChapterList from "../components/anime/ChapterList";
+import AniListStats from "../components/anime/AniListStats";
+import CharactersGrid from "../components/anime/CharactersGrid";
+import StaffGrid from "../components/anime/StaffGrid";
+import AniListRecommendations from "../components/anime/AniListRecommendations";
 
 export default function MangaDetails() {
   const { id } = useParams();
@@ -161,6 +165,11 @@ export default function MangaDetails() {
 
         {/* Reading Platforms */}
         <StreamingPlatforms title={title} type="manga" />
+
+        <AniListStats malId={id} type="MANGA" />
+        <CharactersGrid malId={id} type="MANGA" />
+        <StaffGrid malId={id} type="MANGA" />
+        <AniListRecommendations malId={id} type="MANGA" />
 
         {/* Reader placeholder */}
         <section ref={readerRef}>
