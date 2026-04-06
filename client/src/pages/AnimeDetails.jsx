@@ -18,6 +18,10 @@ import YoutubePlayer from "../components/anime/YoutubePlayer";
 import RelatedAnime from "../components/anime/RelatedAnime";
 import WatchlistButton from "../components/anime/WatchlistButton";
 import FavoriteButton from "../components/anime/FavoriteButton";
+import AniListStats from "../components/anime/AniListStats";
+import CharactersGrid from "../components/anime/CharactersGrid";
+import StaffGrid from "../components/anime/StaffGrid";
+import AniListRecommendations from "../components/anime/AniListRecommendations";
 
 export default function AnimeDetails() {
   const { id } = useParams();
@@ -212,6 +216,21 @@ export default function AnimeDetails() {
 
         {/* Streaming Platforms */}
         <StreamingPlatforms title={title} type="anime" />
+
+        {/* AniList Stats + Tags + External Links */}
+        <AniListStats malId={id} type="ANIME" />
+
+        {/* Characters + Voice Actors */}
+        <CharactersGrid malId={id} type="ANIME" />
+
+        {/* Staff */}
+        <StaffGrid malId={id} type="ANIME" />
+
+        {/* AniList Recommendations */}
+        <AniListRecommendations malId={id} type="ANIME" />
+
+        {/* Keep existing RelatedAnime below */}
+        <RelatedAnime animeId={id} relations={anime.relations} />
 
         {/* YouTube Player */}
         <div ref={playerRef}>
