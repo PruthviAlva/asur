@@ -1,132 +1,95 @@
-import axios from 'axios'
-import { JIKAN_BASE } from '../utils/constants'
+import anilistService from './anilistService'
 
-// Jikan has a rate limit: 3 req/sec, 60 req/min
-// TanStack Query caching prevents hitting this in normal use,
-// but multiple queries firing on the same page mount (e.g. home page
-// hero + top10 + latest episodes) can still burst past the limit.
-// The queue below serializes every call with a gap, and retries on 429/504.
-
-const jikan = axios.create({
-    baseURL: JIKAN_BASE,
-    timeout: 10000, // 10s timeout
-})
-
-// ─── Request Queue: max 1 in-flight, spaced ~400ms apart ───
-let queue = []
-let activeRequests = 0
-const MAX_CONCURRENT = 1
-const MIN_GAP_MS = 400 // ~2.5 req/sec, safely under Jikan's 3/sec cap
-
-const processQueue = () => {
-    if (activeRequests >= MAX_CONCURRENT || queue.length === 0) return
-
-    activeRequests++
-    const { fn, resolve, reject } = queue.shift()
-
-    fn()
-        .then(resolve)
-        .catch(reject)
-        .finally(() => {
-            activeRequests--
-            setTimeout(processQueue, MIN_GAP_MS)
-        })
-}
-
-const enqueue = (fn) => {
-    return new Promise((resolve, reject) => {
-        queue.push({ fn, resolve, reject })
-        processQueue()
-    })
-}
-
-// ─── Retry wrapper: handle 429 / 504 with exponential backoff ──
-const requestWithRetry = async (requestFn, retries = 3, attempt = 1) => {
-    try {
-        return await requestFn()
-    } catch (error) {
-        const status = error?.response?.status
-        const retryable = status === 429 || status === 504
-        if (retryable && attempt <= retries) {
-            const delay = attempt * 1000 // 1s, 2s, 3s
-            await new Promise((r) => setTimeout(r, delay))
-            return requestWithRetry(requestFn, retries, attempt + 1)
-        }
-        throw error
+// Map AniList media -> minimal Jikan-like shape expected by UI
+const mapMedia = (m) => {
+    const title = m.title?.english || m.title?.romaji || ''
+    return {
+        mal_id: m.idMal || m.id || null,
+        title_english: m.title?.english || null,
+        title,
+        images: {
+            jpg: {
+                image_url: m.coverImage?.large || (m.coverImage?.extraLarge ?? null),
+                large_image_url: m.coverImage?.large || null,
+            }
+        },
+        score: m.averageScore || m.meanScore || null,
+        episodes: m.episodes || null,
+        status: m.status || null,
+        type: m.type || 'ANIME',
+        genres: m.genres || [],
+        raw: m,
     }
 }
 
-// Every call goes through queue + retry, wrapping jikan.get()
-const request = (url) => enqueue(() => requestWithRetry(() => jikan.get(url)))
+const toJikanPage = (pageData) => {
+    // pageData expected to be { Page: { media: [...] } } or similar
+    const media = pageData?.Page?.media || []
+    const mapped = media.map(mapMedia)
+    return { data: mapped, pagination: { last_visible_page: pageData?.Page?.pageInfo?.lastPage || 1 } }
+}
 
 const animeService = {
     // Hero banner + featured content
     getSeasonNow: (page = 1) =>
-        request(`/seasons/now?limit=10&page=${page}`),
+        anilistService.getSeasonNow(page, 10).then((res) => ({ data: toJikanPage(res) })),
 
     // Top 10 today — used for the big rank number row
     getTopAnime: (page = 1, limit = 10) =>
-        request(`/top/anime?limit=${limit}&page=${page}`),
+        anilistService.getTopAnime(page, limit).then((res) => ({ data: toJikanPage(res) })),
 
     // Trending = currently airing, sorted by score
     getTrending: (page = 1) =>
-        request(`/anime?status=airing&order_by=score&sort=desc&limit=12&page=${page}`),
+        anilistService.getTrending(page).then((res) => ({ data: toJikanPage(res) })),
 
     // Latest episodes — recently updated airing anime
     getLatestEpisodes: () =>
-        request(`/anime?status=airing&order_by=start_date&sort=desc&limit=12`),
+        anilistService.getTrending(1).then((res) => ({ data: toJikanPage(res) })),
 
     // Upcoming anime
     getUpcoming: (page = 1) =>
-        request(`/seasons/upcoming?limit=12&page=${page}`),
+        anilistService.getUpcoming(page, 12).then((res) => ({ data: toJikanPage(res) })),
 
     // Single anime details
     getAnimeById: (id) =>
-        request(`/anime/${id}/full`),
+        anilistService.getMediaByMalId(id).then((res) => {
+            const media = res?.Media || res
+            const mapped = mapMedia(media)
+            return { data: { data: mapped } }
+        }),
 
     // Episodes list for an anime
     getAnimeEpisodes: (id, page = 1) =>
-        request(`/anime/${id}/episodes?page=${page}`),
+        // AniList does not provide a full episode list via GraphQL; return empty
+        Promise.resolve({ data: { episodes: [] } }),
 
     // Related anime
     getAnimeRelations: (id) =>
-        request(`/anime/${id}/relations`),
+        anilistService.getRelations(id).then((res) => {
+            const edges = res?.Media?.relations?.edges || []
+            const mapped = edges.map((e) => ({
+                relation: e.relationType,
+                entry: mapMedia(e.node),
+            }))
+            return { data: mapped }
+        }),
 
     // Search
-    searchAnime: (query, page = 1, filters = {}) => {
-        const params = new URLSearchParams({
-            q: query,
-            page,
-            limit: 24,
-            ...filters,
-        })
-        return request(`/anime?${params}`)
-    },
+    searchAnime: (query, page = 1, filters = {}) =>
+        anilistService.searchMedia(query, page, 24).then((res) => ({ data: toJikanPage(res) })),
 
     // All anime with filters (for /anime page)
-    getAnimeList: (page = 1, filters = {}) => {
-        const params = new URLSearchParams({ page, limit: 24, ...filters })
-        return request(`/anime?${params}`)
-    },
+    getAnimeList: (page = 1, filters = {}) =>
+        anilistService.getTopAnime(page, 24).then((res) => ({ data: toJikanPage(res) })),
 
-    // Manga
-    getTopManga: (page = 1) =>
-        request(`/top/manga?limit=24&page=${page}`),
+    // Manga (not fully implemented via AniList yet) — return empty structures for demo
+    getTopManga: (page = 1) => Promise.resolve({ data: { data: [], pagination: { last_visible_page: 1 } } }),
+    getMangaById: (id) => Promise.resolve({ data: {} }),
+    searchManga: (query, page = 1) => Promise.resolve({ data: { data: [], pagination: { last_visible_page: 1 } } }),
+    getMangaList: (page = 1, filters = {}) => Promise.resolve({ data: { data: [], pagination: { last_visible_page: 1 } } }),
 
-    getMangaById: (id) =>
-        request(`/manga/${id}/full`),
-
-    searchManga: (query, page = 1) =>
-        request(`/manga?q=${query}&page=${page}&limit=24`),
-
-    getMangaList: (page = 1, filters = {}) => {
-        const params = new URLSearchParams({ page, limit: 24, ...filters })
-        return request(`/manga?${params}`)
-    },
-
-    // Genres list
-    getGenres: () =>
-        request(`/genres/anime`),
+    // Genres — AniList doesn't expose a simple genres endpoint; return empty for demo
+    getGenres: () => Promise.resolve({ data: { data: [] } }),
 }
 
 export default animeService

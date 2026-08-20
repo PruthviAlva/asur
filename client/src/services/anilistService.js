@@ -175,6 +175,24 @@ const RECOMMENDATIONS_QUERY = `
   }
 `
 
+const RELATIONS_QUERY = `
+  query ($malId: Int, $type: MediaType) {
+    Media(idMal: $malId, type: $type) {
+      relations {
+        edges {
+          relationType
+          node {
+            idMal
+            title { english romaji }
+            coverImage { large }
+            type
+          }
+        }
+      }
+    }
+  }
+`
+
 const TRENDING_QUERY = `
   query ($page: Int, $type: MediaType) {
     Page(page: $page, perPage: 20) {
@@ -191,6 +209,60 @@ const TRENDING_QUERY = `
         status
         episodes
         chapters
+      }
+    }
+  }
+`
+
+const TOP_ANIME_QUERY = `
+  query ($page: Int, $perPage: Int, $type: MediaType) {
+    Page(page: $page, perPage: $perPage) {
+      media(sort: SCORE_DESC, type: $type, isAdult: false) {
+        idMal
+        id
+        title { english romaji }
+        coverImage { large color }
+        averageScore
+        popularity
+        rank: rankings { rank }
+        genres
+        status
+        episodes
+      }
+    }
+  }
+`
+
+const SEASON_QUERY = `
+  query ($season: MediaSeason, $seasonYear: Int, $page: Int, $perPage: Int, $type: MediaType) {
+    Page(page: $page, perPage: $perPage) {
+      media(season: $season, seasonYear: $seasonYear, sort: POPULARITY_DESC, type: $type, isAdult: false) {
+        idMal
+        id
+        title { english romaji }
+        coverImage { large color }
+        bannerImage
+        averageScore
+        popularity
+        status
+        episodes
+      }
+    }
+  }
+`
+
+const UPCOMING_QUERY = `
+  query ($page: Int, $perPage: Int, $type: MediaType) {
+    Page(page: $page, perPage: $perPage) {
+      media(status: NOT_YET_RELEASED, sort: POPULARITY_DESC, type: $type, isAdult: false) {
+        idMal
+        id
+        title { english romaji }
+        coverImage { large color }
+        averageScore
+        popularity
+        status
+        episodes
       }
     }
   }
@@ -216,6 +288,35 @@ const anilistService = {
     // Get AniList trending (richer than Jikan)
     getTrending: (page = 1, type = 'ANIME') =>
         anilistQuery(TRENDING_QUERY, { page, type }),
+
+    // Top anime by score
+    getTopAnime: (page = 1, perPage = 10, type = 'ANIME') =>
+      anilistQuery(TOP_ANIME_QUERY, { page, perPage, type }),
+
+    // Season now — compute current season/year on client and query AniList
+    getSeasonNow: (page = 1, perPage = 10, type = 'ANIME') => {
+      const now = new Date()
+      const month = now.getMonth() + 1
+      let season = 'WINTER'
+      if (month >= 3 && month <= 5) season = 'SPRING'
+      else if (month >= 6 && month <= 8) season = 'SUMMER'
+      else if (month >= 9 && month <= 11) season = 'FALL'
+      const year = now.getFullYear()
+      return anilistQuery(SEASON_QUERY, { season, seasonYear: year, page, perPage, type })
+    },
+
+    // Upcoming (not yet released)
+    getUpcoming: (page = 1, perPage = 12, type = 'ANIME') =>
+      anilistQuery(UPCOMING_QUERY, { page, perPage, type }),
+
+    // Generic media search
+    searchMedia: (search, page = 1, perPage = 24, type = 'ANIME') => {
+      const SEARCH_QUERY = `query ($search: String, $page: Int, $perPage: Int, $type: MediaType) { Page(page:$page, perPage:$perPage) { media(search: $search, type: $type, isAdult: false) { idMal id title { english romaji } coverImage { large } averageScore } } }`
+      return anilistQuery(SEARCH_QUERY, { search, page, perPage, type })
+    },
+
+    // Relations for a media (similar to Jikan relations)
+    getRelations: (malId, type = 'ANIME') => anilistQuery(RELATIONS_QUERY, { malId: Number(malId), type }),
 }
 
 export default anilistService
